@@ -1,0 +1,3 @@
+COPY LOADER INTO image_class FROM loadClass('/Users/holanda/Documents/Projects/EnsembleLearningMonetDBTensorflow/cifar-100-python');
+COPY LOADER INTO image_superclass FROM loadSuperclass('/Users/holanda/Documents/Projects/EnsembleLearningMonetDBTensorflow/cifar-100-python');
+COPY LOADER INTO cifar100 FROM loadImages('/Users/holanda/Documents/Projects/EnsembleLearningMonetDBTensorflow/cifar-100-python');
