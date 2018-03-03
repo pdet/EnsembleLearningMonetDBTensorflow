@@ -2,34 +2,46 @@ import urllib2
 import os
 import tarfile
 import inspect
+import time
 MAIN_PATH =  os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))) # script directory
-print("Downloading Cifar 100")
-response = urllib2.urlopen('https://www.cs.toronto.edu/~kriz/cifar-100-python.tar.gz')
-zipcifar= response.read()
-with open("cifar100.tar.gz", 'w') as f:
-    f.write(zipcifar)
+# print("Cleaning Database")
+# os.system('mclient '+ MAIN_PATH+'/src/dropschema.sql')
 
-tar = tarfile.open("cifar100.tar.gz", "r:gz")
-tar.extractall()
-tar.close()
+# print("Downloading Cifar 100")
+# response = urllib2.urlopen('https://www.cs.toronto.edu/~kriz/cifar-100-python.tar.gz')
+# zipcifar= response.read()
+# with open(MAIN_PATH+"/cifar100.tar.gz", 'w') as f:
+#     f.write(zipcifar)
 
-print("Creating Database")
-os.system('mclient src/schema.sql')
-os.system('mclient src/loadimages.sql')
-sql = "COPY LOADER INTO image_class FROM loadClass(\'"+MAIN_PATH+"cifar-100-python\');"
-os.system('mclient -s ' + sql)
-sql = "COPY LOADER INTO image_superclass FROM loadSuperclass(\'"+MAIN_PATH+"cifar-100-python\');"
-os.system('mclient -s ' + sql)
-sql = "COPY LOADER INTO cifar100 FROM loadImages(\'"+MAIN_PATH+"cifar-100-python\');"
-os.system('mclient -s ' + sql)
+# tar = tarfile.open(MAIN_PATH+"/cifar100.tar.gz", "r:gz")
+# tar.extractall()
+# tar.close()
 
+# print("Creating Database")
+# os.system('mclient '+ MAIN_PATH+'/src/schema.sql')
+# os.system('mclient '+ MAIN_PATH+'/src/loadimages.sql')
+# sql = "COPY LOADER INTO image_class FROM loadClass(\'"+MAIN_PATH+"/cifar-100-python\');"
+# os.system('mclient -s ' +"\"" + sql +"\"")
+# sql = "COPY LOADER INTO image_superclass FROM loadSuperclass(\'"+MAIN_PATH+"/cifar-100-python\');"
+# os.system('mclient -s ' +"\"" + sql +"\"")
+# sql = "COPY LOADER INTO cifar100 FROM loadImages(\'"+MAIN_PATH+"/cifar-100-python\');"
+# os.system('mclient -s ' +"\"" + sql +"\"")
+start_time_monet = time.time()
 print("Training Models MonetDB/Tensorflow")
-
-
+os.system('mkdir '+ MAIN_PATH+'/databasemodels')
+os.system('mclient '+ MAIN_PATH+'/src/trainmodel.sql')
+sql = "COPY LOADER INTO classificationmodel FROM trainmodel(\'"+MAIN_PATH+"/databasemodels\');"
+os.system('mclient -s ' +"\"" + sql +"\"")
 print("Classification MonetDB/Tensorflow")
+end_time_monet = time.time()
+start_time_tensor = time.time()
 
 print("Training Models Standard Tensorflow")
 
 
 print("Classification Standard Tensorflow")
 
+end_time_tensor = time.time()
+
+print("--- %s MonetDB seconds ---" % (end_time_monet - start_time_monet))
+print("--- %s TensorFlow seconds ---" % (end_time_tensor - start_time_tensor))

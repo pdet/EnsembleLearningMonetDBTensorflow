@@ -1,4 +1,3 @@
---DO
 START TRANSACTION;
 CREATE TABLE image_class (
     id integer NOT NULL PRIMARY KEY,
@@ -20,18 +19,12 @@ CREATE TABLE cifar100 (
 
 
 CREATE TABLE classificationmodel (
-    id integer NOT NULL PRIMARY KEY AUTO_INCREMENT,
     name varchar(120) NOT NULL,
     model_path varchar(120) NOT NULL, #Future BLOB
-    batch_size integer not null ,
-    learning_rate float not null, 
-    epoch integer not null 
+    batch_size integer NOT NULL ,
+    learning_rate float NOT NULL, 
+    epoch integer NOT NULL, 
+    image_superclass_id integer NOT NULL
 );
 
 COMMIT;
-
-
--- DROP TABLE classification;
--- DROP TABLE classificationmodel;
--- DROP TABLE trainset;
--- DROP TABLE cifar100;

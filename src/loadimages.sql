@@ -60,5 +60,3 @@ for x in test_set['data']:
     _emit.emit({'data': x, 'class': train_set['class'][i], 'superclass': train_set['superclass'][i],'train':False})
     i = i + 1
 };
-
-
