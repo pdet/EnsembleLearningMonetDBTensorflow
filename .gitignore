@@ -1,4 +1,6 @@
 cifar-100-python/
 cifar100.tar.gz
-.DS_Store
+*DS_Store
 databasemodels/
+tensorflowmodels/
+*pyc

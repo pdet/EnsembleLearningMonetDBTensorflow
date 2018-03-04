@@ -5,7 +5,6 @@ CREATE loader classification (numpyimage blob, label integer, image_id integer,
 import tensorflow as tf
 import pickle
 import numpy as np
-#Restore Trained Model
 sess=tf.Session()    
 new_saver = tf.train.import_meta_graph(model_path[0]+name[0] +'.meta')
 new_saver.restore(sess, model_path[0]+name[0])
@@ -24,7 +23,6 @@ for i in range(len(numpyimage)):
     modelid.append(1)
 xs = np.array(xs)
 images_test = xs.reshape(xs.shape[0], 32 * 32 * 3) 
-#Actually perform the classification for the images
 classifiedtype =sess.run(tf.argmax(logits, 1), feed_dict={images_placeholder:images_test})
 _emit.emit( { 'id_cifarimage':image_id , 'id_model': model_id, 'id_label': classifiedtype})
 };

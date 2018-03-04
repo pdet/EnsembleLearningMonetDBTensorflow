@@ -3,7 +3,12 @@ import os
 import tarfile
 import inspect
 import time
+import sys
+
 MAIN_PATH =  os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))) # script directory
+sys.path.append(MAIN_PATH+ "/src")
+import std_tensorflow
+
 # print("Cleaning Database")
 # os.system('mclient '+ MAIN_PATH+'/src/dropschema.sql')
 
@@ -26,21 +31,18 @@ MAIN_PATH =  os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfram
 # os.system('mclient -s ' +"\"" + sql +"\"")
 # sql = "COPY LOADER INTO cifar100 FROM loadImages(\'"+MAIN_PATH+"/cifar-100-python\');"
 # os.system('mclient -s ' +"\"" + sql +"\"")
-start_time_monet = time.time()
-print("Training Models MonetDB/Tensorflow")
-os.system('mkdir '+ MAIN_PATH+'/databasemodels')
-os.system('mclient '+ MAIN_PATH+'/src/trainmodel.sql')
-sql = "COPY LOADER INTO classificationmodel FROM trainmodel(\'"+MAIN_PATH+"/databasemodels\');"
-os.system('mclient -s ' +"\"" + sql +"\"")
-print("Classification MonetDB/Tensorflow")
-end_time_monet = time.time()
-start_time_tensor = time.time()
+# start_time_monet = time.time()
+# print("Training Models MonetDB/Tensorflow")
+# os.system('mkdir '+ MAIN_PATH+'/databasemodels')
+# os.system('mclient '+ MAIN_PATH+'/src/trainmodel.sql')
+# sql = " COPY LOADER INTO classificationmodel FROM trainmodel((select distinct \'"+MAIN_PATH+"/databasemodels\', id from image_superclass));"
+# os.system('mclient -s ' +"\"" + sql +"\"")
+# end_time_monet = time.time()
+os.system('mkdir '+ MAIN_PATH+'/tensorflowmodels')
+# start_time_tensor = time.time()
 
 print("Training Models Standard Tensorflow")
-
-
-print("Classification Standard Tensorflow")
-
+std_tensorflow.run(MAIN_PATH)
 end_time_tensor = time.time()
 
 print("--- %s MonetDB seconds ---" % (end_time_monet - start_time_monet))

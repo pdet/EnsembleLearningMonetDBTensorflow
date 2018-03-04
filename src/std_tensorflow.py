@@ -1,37 +1,22 @@
-CREATE OR REPLACE LOADER trainmodel (model_path STRING, superclass INTEGER) 
-LANGUAGE PYTHON 
-{   
+import os
+import cPickle
 import pickle
 import tensorflow as tf
 import numpy as np
-from multiprocessing.pool import ThreadPool
-train_images = _conn.execute("SELECT data,superclass FROM cifar100 WHERE train=True;")
-test_images = _conn.execute("SELECT data,superclass FROM cifar100 WHERE train=False;")
-xs = []
-ys = []
-xstest = []
-ystest = []
-for i in range(len(train_images['data'])):
-    xs.append(pickle.loads(train_images['data'][i]))
-    ys.append(train_images['superclass'][i])
-xs = np.array(xs)
-images_train = xs.reshape(xs.shape[0], 32 * 32 * 3) 
-for i in range(len(test_images['data'])):
-    xstest.append(pickle.loads(test_images['data'][i]))
-    ystest.append(test_images['superclass'][i])
-xstest = np.array(xstest)
-images_test = xstest.reshape(xstest.shape[0], 32 * 32 * 3) 
 
-batch_size = 100
-learning_rate = 0.5
-epoch = 100
-model_path = model_path[0]
-print(model_path)
-#batch_size = [100,1000,10000]
-#learning_rate = [0.5,0.05,0.005]
-#epoch = [10000,100000,1000000]
+def unpickle(file):
+    with open(file, 'rb') as fo:
+        dict = cPickle.load(fo)
+    return dict
 
-def run_for_model(superclass):
+def specializedModel(main_path,superclass,ys,ystest,images_train,images_test):
+    model_path = main_path + "/tensorflowmodels/"
+    batch_size = 100
+    learning_rate = 0.5
+    epoch = 100
+    #batch_size = [100,1000,10000]
+    #learning_rate = [0.5,0.05,0.005]
+    #epoch = [10000,100000,1000000]
     accuracy = 0
     best_batch_size = 0
     best_learning_rate = 0
@@ -62,15 +47,36 @@ def run_for_model(superclass):
             sess.run(train_step, feed_dict={images_placeholder: images_batch,labels_placeholder: labels_batch})
             classifiedtype =sess.run(tf.argmax(logits, 1), feed_dict={images_placeholder:images_test})
         if np.sum(classifiedtype == labels_test) > accuracy:
-            print(accuracy)
             accuracy = np.sum(classifiedtype == labels_test)
             best_batch_size = batch_size
             best_learning_rate = learning_rate
             best_epoch = epoch
             saver = tf.train.Saver()
             saver.save(sess, model_path+str(superclass))
-    _emit.emit( {'name': str(superclass), 'model_path': model_path, 'batch_size': best_batch_size, 'learning_rate':best_learning_rate, 'epoch':best_epoch, 'image_superclass_id' : superclass})
 
-p = ThreadPool(len(superclass))
-p.map(run_for_model, superclass)
-};
+def run(main_path):
+    folder_path = main_path +"/cifar-100-python"
+    train_set = unpickle(os.path.join(folder_path, 'train'))
+    test_set = unpickle(os.path.join(folder_path, 'test'))
+
+    train_set['class'] = train_set.pop('fine_labels')
+    train_set['superclass'] = train_set.pop('coarse_labels')
+    test_set['class'] = test_set.pop('fine_labels')
+    test_set['superclass'] = test_set.pop('coarse_labels')
+    xs = []
+    ys = []
+    xstest = []
+    ystest = []
+    for i in range(len(train_set['data'])):
+        xs.append(train_set['data'][i])
+        ys.append(train_set['superclass'][i])
+    xs = np.array(xs)
+    images_train = xs.reshape(xs.shape[0], 32 * 32 * 3) 
+    for i in range(len(test_set['data'])):
+        xstest.append(test_set['data'][i])
+        ystest.append(test_set['superclass'][i])
+    xstest = np.array(xstest)
+    images_test = xstest.reshape(xstest.shape[0], 32 * 32 * 3) 
+    for i in range(20):
+        print(i)
+        specializedModel(main_path,i,ys,ystest,xs,xstest)
