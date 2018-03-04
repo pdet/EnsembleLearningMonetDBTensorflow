@@ -11,12 +11,10 @@ def unpickle(file):
 
 def specializedModel(main_path,superclass,ys,ystest,images_train,images_test):
     model_path = main_path + "/tensorflowmodels/"
-    batch_size = 100
-    learning_rate = 0.5
-    epoch = 100
-    #batch_size = [100,1000,10000]
-    #learning_rate = [0.5,0.05,0.005]
-    #epoch = [10000,100000,1000000]
+
+    batch_size = [100,1000,10000]
+    learning_rate = [0.5,0.05,0.005]
+    epochs = [100,1000,10000]
     accuracy = 0
     best_batch_size = 0
     best_learning_rate = 0
@@ -37,22 +35,37 @@ def specializedModel(main_path,superclass,ys,ystest,images_train,images_test):
     logits = tf.matmul(images_placeholder, weights) + biases
     tf.add_to_collection("logits", logits)
     loss = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits,labels=labels_placeholder))
-    train_step = tf.train.GradientDescentOptimizer(learning_rate).minimize(loss)
     with tf.Session() as sess:
-        sess.run(tf.global_variables_initializer())
-        for i in range(epoch):
-            indices = np.random.choice(images_train.shape[0], batch_size)
-            images_batch = images_train[indices]
-            labels_batch = labels_train[indices]
-            sess.run(train_step, feed_dict={images_placeholder: images_batch,labels_placeholder: labels_batch})
-            classifiedtype =sess.run(tf.argmax(logits, 1), feed_dict={images_placeholder:images_test})
-        if np.sum(classifiedtype == labels_test) > accuracy:
-            accuracy = np.sum(classifiedtype == labels_test)
-            best_batch_size = batch_size
-            best_learning_rate = learning_rate
-            best_epoch = epoch
-            saver = tf.train.Saver()
-            saver.save(sess, model_path+str(superclass))
+        for batch in batch_size:
+            for learning in learning_rate:
+                for epoch in epochs:
+                    train_step = tf.train.GradientDescentOptimizer(learning).minimize(loss)
+                    sess.run(tf.global_variables_initializer())
+                    for i in range(epoch):
+                        indices = np.random.choice(images_train.shape[0], batch)
+                        images_batch = images_train[indices]
+                        labels_batch = labels_train[indices]
+                        sess.run(train_step, feed_dict={images_placeholder: images_batch,labels_placeholder: labels_batch})
+                        classifiedtype =sess.run(tf.argmax(logits, 1), feed_dict={images_placeholder:images_test})
+                    if np.sum(classifiedtype == labels_test) > accuracy:
+                        accuracy = np.sum(classifiedtype == labels_test)
+                        best_batch_size = batch_size
+                        best_learning_rate = learning_rate
+                        best_epoch = epoch
+                        saver = tf.train.Saver()
+                        saver.save(sess, model_path+str(superclass))
+
+def classify(model_path,model_name,test_images):
+    model_path = model_path + "/tensorflowmodels/"
+    sess=tf.Session()    
+    new_saver = tf.train.import_meta_graph(model_path+model_name+'.meta')
+    new_saver.restore(sess, model_path +model_name)
+    graph = tf.get_default_graph()
+    images_placeholder = graph.get_tensor_by_name("images_placeholder:0")
+    labels_placeholder = graph.get_tensor_by_name("labels_placeholder:0")
+    logits = tf.get_collection("logits")[0]
+    classifiedtype =sess.run(tf.argmax(logits, 1), feed_dict={images_placeholder:test_images})
+
 
 def run(main_path):
     folder_path = main_path +"/cifar-100-python"
@@ -80,3 +93,6 @@ def run(main_path):
     for i in range(20):
         print(i)
         specializedModel(main_path,i,ys,ystest,xs,xstest)
+    for i in range(20):
+        print(i)
+        classify(main_path,str(i),xstest)

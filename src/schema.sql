@@ -20,7 +20,7 @@ CREATE TABLE cifar100 (
 
 CREATE TABLE classificationmodel (
     name varchar(120) NOT NULL,
-    model_path varchar(120) NOT NULL, #Future BLOB
+    model_path varchar(120) NOT NULL,
     batch_size integer NOT NULL ,
     learning_rate float NOT NULL, 
     epoch integer NOT NULL, 

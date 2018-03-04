@@ -22,15 +22,12 @@ for i in range(len(test_images['data'])):
 xstest = np.array(xstest)
 images_test = xstest.reshape(xstest.shape[0], 32 * 32 * 3) 
 
-batch_size = 100
-learning_rate = 0.5
-epoch = 100
+
 model_path = model_path[0]
 print(model_path)
-#batch_size = [100,1000,10000]
-#learning_rate = [0.5,0.05,0.005]
-#epoch = [10000,100000,1000000]
-
+batch_size = [100,1000,10000]
+learning_rate = [0.5,0.05,0.005]
+epochs = [100,1000,10000]
 def run_for_model(superclass):
     accuracy = 0
     best_batch_size = 0
@@ -52,24 +49,27 @@ def run_for_model(superclass):
     logits = tf.matmul(images_placeholder, weights) + biases
     tf.add_to_collection("logits", logits)
     loss = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits,labels=labels_placeholder))
-    train_step = tf.train.GradientDescentOptimizer(learning_rate).minimize(loss)
     with tf.Session() as sess:
-        sess.run(tf.global_variables_initializer())
-        for i in range(epoch):
-            indices = np.random.choice(images_train.shape[0], batch_size)
-            images_batch = images_train[indices]
-            labels_batch = labels_train[indices]
-            sess.run(train_step, feed_dict={images_placeholder: images_batch,labels_placeholder: labels_batch})
-            classifiedtype =sess.run(tf.argmax(logits, 1), feed_dict={images_placeholder:images_test})
-        if np.sum(classifiedtype == labels_test) > accuracy:
-            print(accuracy)
-            accuracy = np.sum(classifiedtype == labels_test)
-            best_batch_size = batch_size
-            best_learning_rate = learning_rate
-            best_epoch = epoch
-            saver = tf.train.Saver()
-            saver.save(sess, model_path+str(superclass))
-    _emit.emit( {'name': str(superclass), 'model_path': model_path, 'batch_size': best_batch_size, 'learning_rate':best_learning_rate, 'epoch':best_epoch, 'image_superclass_id' : superclass})
+        for batch in batch_size:
+            for learning in learning_rate:
+                for epoch in epochs:
+                    train_step = tf.train.GradientDescentOptimizer(learning).minimize(loss)
+                    sess.run(tf.global_variables_initializer())
+                    for i in range(epoch):
+                        indices = np.random.choice(images_train.shape[0], batch)
+                        images_batch = images_train[indices]
+                        labels_batch = labels_train[indices]
+                        sess.run(train_step, feed_dict={images_placeholder: images_batch,labels_placeholder: labels_batch})
+                        classifiedtype =sess.run(tf.argmax(logits, 1), feed_dict={images_placeholder:images_test})
+                    if np.sum(classifiedtype == labels_test) > accuracy:
+                        print(accuracy)
+                        accuracy = np.sum(classifiedtype == labels_test)
+                        best_batch_size = batch
+                        best_learning_rate = learning
+                        best_epoch = epoch
+                        saver = tf.train.Saver()
+                        saver.save(sess, model_path+str(superclass))
+                _emit.emit( {'name': str(superclass), 'model_path': model_path, 'batch_size': best_batch_size, 'learning_rate':best_learning_rate, 'epoch':best_epoch, 'image_superclass_id' : superclass})
 
 p = ThreadPool(len(superclass))
 p.map(run_for_model, superclass)
