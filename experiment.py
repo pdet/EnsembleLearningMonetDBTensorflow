@@ -33,10 +33,20 @@ sql = "COPY LOADER INTO cifar100 FROM loadImages(\'"+MAIN_PATH+"/cifar-100-pytho
 os.system('mclient -s ' +"\"" + sql +"\"")
 start_time_monet = time.time()
 print("Training Models MonetDB/Tensorflow")
-os.system('mkdir '+ MAIN_PATH+'/databasemodels')
+modeldir = os.path.join(MAIN_PATH, "databasemodels")
+os.system('mkdir '+ modeldir)
 os.system('mclient '+ MAIN_PATH+'/src/trainmodel.sql')
-sql = " COPY LOADER INTO classificationmodel FROM trainmodel((select distinct \'"+MAIN_PATH+"/databasemodels/\', id from image_superclass));"
-os.system('mclient -s ' +"\"" + sql +"\"")
+sql = """
+CREATE TABLE classification_temporary AS
+SELECT trainmodel(id, '%s')
+FROM image_superclass
+WITH DATA;
+INSERT INTO classificationmodel
+SELECT * FROM
+unpackmodels((SELECT * FROM classification_temporary));
+DROP TABLE classification_temporary;
+""" % (modeldir,)
+os.system('mclient -s ' +"\"" + sql.replace("\n", " ") +"\"")
 end_time_monet = time.time()
 os.system('mkdir '+ MAIN_PATH+'/tensorflowmodels')
 start_time_tensor = time.time()
