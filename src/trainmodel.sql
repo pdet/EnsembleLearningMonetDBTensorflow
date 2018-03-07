@@ -5,10 +5,10 @@ LANGUAGE PYTHON_MAP
 import cPickle as pickle
 import tensorflow as tf
 import numpy as np
-model_path = model_path[0]
+model_path = model_path[0]+"/"
 from multiprocessing.pool import ThreadPool
-train_images = _conn.execute("SELECT data, superclass FROM cifar100 WHERE train=True LIMIT 4;")
-test_images = _conn.execute("SELECT data, superclass FROM cifar100 WHERE train=False LIMIT 1;")
+train_images = _conn.execute("SELECT data, superclass FROM cifar100 WHERE train=True;")
+test_images = _conn.execute("SELECT data, superclass FROM cifar100 WHERE train=False;")
 xs = []
 ys = []
 xstest = []
@@ -26,7 +26,7 @@ images_test = xstest.reshape(xstest.shape[0], 32 * 32 * 3)
 
 batch_size = [100,1000,10000]
 learning_rate = [0.5,0.05,0.005]
-epochs = [100,1000,10000]
+epochs = [20]
 
 for superclass in sclass:
     accuracy = -1

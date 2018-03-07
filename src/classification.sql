@@ -17,7 +17,7 @@ images_test = xs.reshape(xs.shape[0], 32 * 32 * 3)
 
 def classify_images(model_name):
 	sess=tf.Session()    
-	new_saver = tf.train.import_meta_graph(model_path[0]+model_name+'.meta')
+	new_saver = tf.train.import_meta_graph(model_path[0]+"/"+model_name+'.meta')
 	new_saver.restore(sess, model_path[0]+model_name)
 	graph = tf.get_default_graph()
 	images_placeholder = graph.get_tensor_by_name("images_placeholder:0")

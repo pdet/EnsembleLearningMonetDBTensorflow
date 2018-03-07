@@ -14,7 +14,7 @@ def specializedModel(main_path,superclass,ys,ystest,images_train,images_test):
 
     batch_size = [100,1000,10000]
     learning_rate = [0.5,0.05,0.005]
-    epochs = [100,1000,10000]
+    epochs = [20]
     accuracy = 0
     best_batch_size = 0
     best_learning_rate = 0
