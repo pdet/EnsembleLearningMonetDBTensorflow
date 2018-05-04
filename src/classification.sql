@@ -16,15 +16,14 @@ xs = np.array(xs)
 images_test = xs.reshape(xs.shape[0], 32 * 32 * 3) 
 
 def classify_images(model_name):
-	mpath = model_path[0]+model_name+'.meta'
+	mpath = model_path[0]+"/"+model_name+'.meta'
 	if mpath not in globals():
-		sess=tf.Session()
-		new_saver = tf.train.import_meta_graph()
+		sess=tf.Session()    
+		new_saver = tf.train.import_meta_graph(mpath+'.meta')
 		new_saver.restore(sess, mpath)
 		globals()[mpath] = sess
 	else:
 		sess = globals()[mpath]
-
 	graph = tf.get_default_graph()
 	images_placeholder = graph.get_tensor_by_name("images_placeholder:0")
 	labels_placeholder = graph.get_tensor_by_name("labels_placeholder:0")
