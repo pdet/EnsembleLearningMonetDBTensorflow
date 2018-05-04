@@ -6,7 +6,6 @@ import cPickle as pickle
 import tensorflow as tf
 import numpy as np
 model_path = model_path[0]
-from multiprocessing.pool import ThreadPool
 train_images = _conn.execute("SELECT data, superclass FROM cifar100 WHERE train=True LIMIT 4;")
 test_images = _conn.execute("SELECT data, superclass FROM cifar100 WHERE train=False LIMIT 1;")
 xs = []
@@ -68,7 +67,9 @@ for superclass in sclass:
                             best_learning_rate = learning
                             best_epoch = epoch
                             saver = tf.train.Saver()
-                            saver.save(sess, model_path+str(superclass))
+                            mpath = model_path+str(superclass)
+                            saver.save(sess, mpath)
+                            globals()[mpath] = sess
     _conn.execute("""
        INSERT INTO classificationmodel 
         (name, model_path, batch_size, learning_rate, epoch, image_superclass_id)
