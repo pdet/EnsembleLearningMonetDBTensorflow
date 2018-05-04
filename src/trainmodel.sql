@@ -5,10 +5,15 @@ LANGUAGE PYTHON_MAP
 import cPickle as pickle
 import tensorflow as tf
 import numpy as np
+import time
 model_path = model_path[0]+"/"
 from multiprocessing.pool import ThreadPool
+start_time_monet = time.time()
 train_images = _conn.execute("SELECT data, superclass FROM cifar100 WHERE train=True;")
 test_images = _conn.execute("SELECT data, superclass FROM cifar100 WHERE train=False;")
+end_time_monet = time.time()
+print("--- %s MonetDB (Loading) seconds ---" % (end_time_monet - start_time_monet))
+
 xs = []
 ys = []
 xstest = []

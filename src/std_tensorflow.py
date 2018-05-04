@@ -3,6 +3,7 @@ import cPickle
 import pickle
 import tensorflow as tf
 import numpy as np
+import time
 
 def unpickle(file):
     with open(file, 'rb') as fo:
@@ -68,10 +69,12 @@ def classify(model_path,model_name,test_images):
 
 
 def run(main_path):
+    start_time = time.time()
     folder_path = main_path +"/cifar-100-python"
     train_set = unpickle(os.path.join(folder_path, 'train'))
     test_set = unpickle(os.path.join(folder_path, 'test'))
-
+    end_time = time.time()
+    print("--- %s TF (Loading) seconds ---" % (end_time - start_time))
     train_set['class'] = train_set.pop('fine_labels')
     train_set['superclass'] = train_set.pop('coarse_labels')
     test_set['class'] = test_set.pop('fine_labels')
@@ -89,10 +92,16 @@ def run(main_path):
         xstest.append(test_set['data'][i])
         ystest.append(test_set['superclass'][i])
     xstest = np.array(xstest)
-    images_test = xstest.reshape(xstest.shape[0], 32 * 32 * 3) 
+    images_test = xstest.reshape(xstest.shape[0], 32 * 32 * 3)
+    start_time = time.time() 
     for i in range(20):
         print(i)
         specializedModel(main_path,i,ys,ystest,xs,xstest)
+    end_time = time.time()
+    print("--- %s TF (Training) seconds ---" % (end_time - start_time))
+    start_time = time.time() 
     for i in range(20):
         print(i)
         classify(main_path,str(i),xstest)
+    end_time = time.time()
+    print("--- %s TF (Classifying) seconds ---" % (end_time - start_time))
