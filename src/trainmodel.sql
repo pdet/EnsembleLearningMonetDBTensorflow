@@ -73,7 +73,9 @@ for superclass in sclass:
                             best_learning_rate = learning
                             best_epoch = epoch
                             saver = tf.train.Saver()
-                            saver.save(sess, model_path+str(superclass))
+                            mpath = model_path+str(superclass)
+                            saver.save(sess, mpath)
+                            globals()[mpath] = sess
     _conn.execute("""
        INSERT INTO classificationmodel 
         (name, model_path, batch_size, learning_rate, epoch, image_superclass_id)
